@@ -19,47 +19,62 @@
 #include <set>
 
 using namespace std;
+
 /* 不要修改这个标准输入函数 */
 
-class Production{//产生式
+class Production {//产生式
 public:
     string left;
     vector<string> right;
-    Production(string t){
-        left=t;
+
+    Production(string t) {
+        left = t;
         right.clear();
     };
 
-    void addRight(string s){right.push_back(s);};
+    void addRight(string s) { right.push_back(s); };
 };
 
-class TokenSet{//关系式，用于存储first 和 follow
+class TokenSet {//关系式，用于存储first 和 follow
 public:
     string left;
     set<string> sets;
-    TokenSet(string t){ left = t;sets.clear(); };
 
-    void addSets(string t){ sets.insert(t); };
+    TokenSet(string t) {
+        left = t;
+        sets.clear();
+    };
+
+    void addSets(string t) { sets.insert(t); };
 };
 
-class Grammar{
+class Grammar {
 public:
+    bool debug;
     void getFirst();//通过产生式生成first
-    void getFollow();//生成follow集合
+    void getFollow(string start);//生成follow集合
     bool isTerminate(string s);//判断是否是终止字符
-    bool isDifferent(vector<TokenSet> t1,vector<TokenSet> t2);
+    bool isDifferent(vector<TokenSet> t1, vector<TokenSet> t2);
     void show();//输出生成的productions，first，follow
     void init();//初始化工作
-    void initTest();
+    void initTest1();
+    void initTest2();
+    void initTest3();
 
-    bool addFirstAtoFirstBWithoutE(string A,string B);
+    bool addFirstAtoFirstBWithoutE(string A, string B);
+
     void addEtoFirstA(string A);
-    bool addFirstAtoFollowBWithoutE(vector<string> A,string B);
-    void addFollowAtoFollowB(string A,string B);
-    vector<string> getSubFirst(vector<string> strings,int begin);
+
+    bool addFirstAtoFollowBWithoutE(vector<string> A, string B);
+
+    void addFollowAtoFollowB(string A, string B);
+
+    vector<string> getSubFirst(vector<string> strings, int begin);
+
     set<string> getFirst(vector<string> strings);
 
     Grammar();
+
 private:
     vector<Production> productions;//产生式
     vector<TokenSet> first;//first集合
@@ -77,6 +92,7 @@ Grammar::Grammar() {
     terminates.clear();
     terminates_$.clear();
     LLTable.clear();
+    debug=true;
 }
 
 void Grammar::init() {
@@ -100,9 +116,10 @@ void Grammar::init() {
     terminates_$.push_back(string("*"));
     terminates_$.push_back(string("/"));
     terminates_$.push_back(string(";"));
+    terminates_$.push_back(string("="));
     terminates_$.push_back(string("NUM"));
     terminates_$.push_back(string("E"));
-    for(unsigned int i = 1;i<terminates_$.size();i++)terminates.push_back(terminates_$[i]);
+    for (unsigned int i = 1; i < terminates_$.size(); i++)terminates.push_back(terminates_$[i]);
 
     no_terminates.push_back(string("program"));
     no_terminates.push_back(string("compoundstmt"));
@@ -263,7 +280,7 @@ void Grammar::init() {
     productions.push_back(p);
 }
 
-void Grammar::initTest() {
+void Grammar::initTest1() {
     terminates_$.push_back(string("$"));
     terminates_$.push_back(string("+"));
     terminates_$.push_back(string("-"));
@@ -271,7 +288,8 @@ void Grammar::initTest() {
     terminates_$.push_back(string(")"));
     terminates_$.push_back(string("number"));
     terminates_$.push_back(string("*"));
-    for(int i = 1;i<terminates_$.size();i++)terminates.push_back(terminates_$[i]);
+    terminates_$.push_back(string("E"));
+    for (int i = 1; i < terminates_$.size(); i++)terminates.push_back(terminates_$[i]);
 
     no_terminates.push_back(string("exp"));
     no_terminates.push_back(string("term"));
@@ -322,197 +340,361 @@ void Grammar::initTest() {
     productions.push_back(p);
 }
 
-void Grammar::show(){
-    cout<<"terminates:"<<endl;
-    for(string  s :terminates)cout<<s<<endl;
-    cout<<"\n\n"<<endl;
+void Grammar::initTest2() {
+    terminates_$.push_back(string("$"));
+    terminates_$.push_back(string(";"));
+    terminates_$.push_back(string("s"));
+    terminates_$.push_back(string("E"));
+    for (int i = 1; i < terminates_$.size(); i++)terminates.push_back(terminates_$[i]);
 
-    cout<<"noterminates:"<<endl;
-    for(string s:no_terminates)cout<<s<<endl;
-    cout<<"\n\n"<<endl;
+    no_terminates.push_back(string("stmt-sequence"));
+    no_terminates.push_back(string("stmt"));
+    no_terminates.push_back(string("stmt-seq'"));
 
-    cout<<"productions:"<<endl;
-    for(Production p:productions){
-        cout<<p.left<<"  ->  ";
-        for(string s:p.right)cout<<s<<" ";
-        cout<<endl;
+    Production p = Production(string("stmt-sequence"));
+    p.addRight(string("stmt"));
+    p.addRight(string("stmt-seq'"));
+    productions.push_back(p);
+
+    p = Production(string("stmt-seq'"));
+    p.addRight(string(";"));
+    p.addRight(string("stmt-sequence"));
+    productions.push_back(p);
+
+    p = Production(string("stmt-seq'"));
+    p.addRight(string("E"));
+    productions.push_back(p);
+
+    p = Production(string("stmt"));
+    p.addRight(string("s"));
+    productions.push_back(p);
+}
+
+void Grammar::initTest3() {
+    terminates_$.push_back(string("$"));
+    terminates_$.push_back(string("if"));
+    terminates_$.push_back(string("other"));
+    terminates_$.push_back(string("else"));
+    terminates_$.push_back(string("E"));
+    terminates_$.push_back(string("0"));
+    terminates_$.push_back(string("1"));
+    terminates_$.push_back(string("("));
+    terminates_$.push_back(string(")"));
+    for (int i = 1; i < terminates_$.size(); i++)
+        terminates.push_back(terminates_$[i]);
+
+    no_terminates.push_back(string("statement"));
+    no_terminates.push_back(string("if-stmt"));
+    no_terminates.push_back(string("exp"));
+    no_terminates.push_back(string("else-part"));
+
+    Production p = Production(string("statement"));
+    p.addRight(string("if-stmt"));
+    productions.push_back(p);
+
+    p = Production(string("statement"));
+    p.addRight(string("other"));
+    productions.push_back(p);
+
+    p = Production(string("if-stmt"));
+    p.addRight(string("if"));
+    p.addRight(string("("));
+    p.addRight(string("exp"));
+    p.addRight(string(")"));
+    p.addRight(string("statement"));
+    p.addRight(string("else-part"));
+    productions.push_back(p);
+
+    p = Production(string("else-part"));
+    p.addRight(string("else"));
+    p.addRight(string("statement"));
+    productions.push_back(p);
+
+    p = Production(string("else-part"));
+    p.addRight(string("E"));
+    productions.push_back(p);
+
+    p = Production(string("exp"));
+    p.addRight(string("0"));
+    productions.push_back(p);
+
+    p = Production(string("exp"));
+    p.addRight(string("1"));
+    productions.push_back(p);
+}
+
+void Grammar::show() {
+    cout << "terminates:" << endl;
+    for (string s :terminates)cout << s << endl;
+    cout << endl;
+
+    cout << "noterminates:" << endl;
+    for (string s:no_terminates)cout << s << endl;
+    cout << endl;
+
+    cout << "productions:" << endl;
+    for (Production p:productions) {
+        cout << p.left << "  ->  ";
+        for (string s:p.right)cout << s << " ";
+        cout << endl;
     }
-    cout<<"\n\n"<<endl;
+    cout << endl;
 
-    cout<<"first sets:"<<endl;
-    for(TokenSet tokenSet:first){
-        cout<<tokenSet.left<<":[ ";
-        for(string s:tokenSet.sets)cout<<s<<" ";
-        cout<<"]"<<endl;
+    cout << "first sets:" << endl;
+    for (TokenSet tokenSet:first) {
+        cout << tokenSet.left << ":[ ";
+        for (string s:tokenSet.sets)cout << s << " ";
+        cout << "]" << endl;
     }
-    cout<<"\n\n"<<endl;
+    cout << endl;
 
-    cout<<"follow sets:"<<endl;
-    for(TokenSet tokenSet:follow){
-        cout<<tokenSet.left<<":[ ";
-        for(string s:tokenSet.sets)cout<<s<<" ";
-        cout<<"]"<<endl;
+    cout << "follow sets:" << endl;
+    for (TokenSet tokenSet:follow) {
+        cout << tokenSet.left << ":[ ";
+        for (string s:tokenSet.sets)cout << s << " ";
+        cout << "]" << endl;
     }
 }
 
 void Grammar::getFirst() {
     first.clear();
-    for(string ter: terminates){//
+    for (string ter: terminates) {//
         TokenSet tokenSet = TokenSet(ter);
         tokenSet.addSets(ter);
         first.push_back(tokenSet);
     }
 
-    for(string no_terminate: no_terminates){
+    for (string no_terminate: no_terminates) {
         first.push_back(TokenSet(no_terminate));
     }
 
     vector<TokenSet> temp = first;
-    do{
+    do {
         temp = first;
-        for(Production p:productions){
-                int k = 0;
-                bool Continue = true;
-                while (Continue&&k<p.right.size()){
-                    if(!addFirstAtoFirstBWithoutE(p.right[k],p.left))Continue = false;
-                    k++;
-                }
-                if(Continue)addEtoFirstA(p.left);
+        for (Production p:productions) {
+            int k = 0;
+            bool Continue = true;
+            while (Continue && k < p.right.size()) {
+                if (!addFirstAtoFirstBWithoutE(p.right[k], p.left))Continue = false;
+                k++;
+            }
+            if (Continue)addEtoFirstA(p.left);
         }
-    }while (isDifferent(temp,first));
+    } while (isDifferent(temp, first));
 }
 
-set<string> Grammar::getFirst(vector<string> strings){
+set<string> Grammar::getFirst(vector<string> strings) {//stmts
     int k = 0;
     bool Contione = true;
     set<string> result;
     result.clear();
-    int index=0;
-    while (Contione&&k<strings.size()){
-        for(int i = 0;i<first.size();i++){if(first[i].left==strings[k]){index = i;break;}}
-        for(string s:first[index].sets){
-            if(s == string("E")){
-                Contione = true;
-            }else{
-                Contione = false;
-                result.insert(s);
+    int index = 0;
+
+    while (Contione && k < strings.size()) {//first(XiX2....Xn)->follow(xi-1)//add follow(A)->follow(xi-1)
+        for (int i = 0; i < first.size(); i++) {
+            if (first[i].left == strings[k]) {
+                index = i;
+                break;
             }
         }
+        for (string s:first[index].sets) {
+            if (s != string("E"))result.insert(s);
+        }
+        bool hasE = false;
+        for(string s:first[index].sets){
+            if(s == string("E")){
+                hasE = true;
+            }
+        }
+        if (!hasE) Contione = false;
         k++;
     }
-    if(Contione)result.insert(string("E"));
+    if (Contione)result.insert(string("E"));
+
+    if(debug){
+        cout << "[getFirst]::first set( ";
+        for (string s:strings)cout << s << " ";
+        cout << ") " << ":[ ";
+        for (string s:result)cout << s << " ";
+        cout << "] " << endl;
+        if (Contione)cout << "[getFirst]::has E" << endl;
+    }
     return result;
 }
 
-vector<string> Grammar::getSubFirst(vector<string> strings,int begin) {
+vector<string> Grammar::getSubFirst(vector<string> strings, int begin) {
     vector<string> result;
     result.clear();
-    if(begin==strings.size()){
+    if (begin == strings.size()) {
         result.push_back(string("E"));
-        return result;
+    } else {
+        for (int i = begin; i < strings.size(); i++)result.push_back(strings[i]);
     }
-    for(int i = begin;i<strings.size();i++)result.push_back(strings[i]);
+    if(debug){
+        cout << "[getSubFirst]::handle vector<string>:[ ";
+        for (string s:result)cout << s << " ";
+        cout << "] " << begin << " [ ";
+        for (string s:strings)cout << s << " ";
+        cout << "]" << endl;
+    }
     return result;
 }
 
-bool Grammar::addFirstAtoFirstBWithoutE(string A,string B){
-    int IndexA,IndexB;
+bool Grammar::addFirstAtoFirstBWithoutE(string A, string B) {
+    int IndexA, IndexB;
     bool hasE = false;
-    for(int i = 0;i<first.size();i++){if(first[i].left==A){/*cout<<first[i].left<<"is equal to "<<A<<endl;*/IndexA=i;break;}}
-    for(int i = 0;i<first.size();i++){if(first[i].left==B){/*cout<<first[i].left<<"is equal to "<<B<<endl;*/IndexB=i;break;}}
-    for(string s:first[IndexA].sets){
-        if(s==string("E"))hasE=true;
-        else{first[IndexB].addSets(s);}
+    for (int i = 0; i < first.size(); i++) {
+        if (first[i].left == A) {/*cout<<first[i].left<<"is equal to "<<A<<endl;*/IndexA = i;
+            break;
+        }
+    }
+    for (int i = 0; i < first.size(); i++) {
+        if (first[i].left == B) {/*cout<<first[i].left<<"is equal to "<<B<<endl;*/IndexB = i;
+            break;
+        }
+    }
+    for (string s:first[IndexA].sets) {
+        if (s == string("E")) {
+            hasE = true;
+        }
+        else { first[IndexB].addSets(s); }
+    }
+    if(debug){
+        cout << "[addFirstAtoFirstBWithoutE]::first("<<first[IndexA].left<<"):[ ";
+        for (string s:first[IndexA].sets)cout << s << " ";
+        cout << "] to first("<<first[IndexB].left<<"):[ ";
+        for (string s:first[IndexB].sets)cout << s << " ";
+        cout << "]" << endl;
     }
     return hasE;
 }
 
-void Grammar::addEtoFirstA(string A){
+void Grammar::addEtoFirstA(string A) {
     int IndexA;
-    for(int i  = 0;i<first.size();i++){if(first[i].left==A){IndexA=i;break;}}
+    for (int i = 0; i < first.size(); i++) {
+        if (first[i].left == A) {
+            IndexA = i;
+            break;
+        }
+    }
     first[IndexA].addSets(string("E"));
 }
 
-bool Grammar::addFirstAtoFollowBWithoutE(vector<string> A,string B){
+bool Grammar::addFirstAtoFollowBWithoutE(vector<string> A, string B) {
     set<string> result = getFirst(A);
     int index = 0;
     bool hasE = false;
-    for(int i = 0;i<follow.size();i++){if(follow[i].left==B){index = i;break;}}
-    for(string s :result){
-        if(s==string("E"))hasE = true;
-        else{
+    for (int i = 0; i < follow.size(); i++) {
+        if (follow[i].left == B) {
+            index = i;
+            break;
+        }
+    }
+    string e = string("E");
+    for (string s :result) {
+        if (s == e)hasE = true;
+        else {
             follow[index].addSets(s);
         }
+    }
+
+    if(debug){
+        cout << "[addFirtstoFollowWithoutE]::add First( ";
+        for (string s:A)cout << s << " ";
+        cout << "):[ ";
+        for (string s:result)cout << s << " ";
+        cout << "]" << "to Follow(" << follow[index].left << "):" << "[ ";
+        for (string s:follow[index].sets)cout << s << " ";
+        cout << "]" << endl;
+        if (hasE)cout << "[addFirstToFollowWithoutE]::has E" << endl;
     }
     return hasE;
 }
 
-void Grammar::addFollowAtoFollowB(string A,string B){
-    int IndexA,IndexB;
-    for(int i = 0;i<follow.size();i++){if(follow[i].left==A){IndexA=i;break;}}
-    for(int i = 0;i<follow.size();i++){if(follow[i].left==B){IndexB=i;break;}}
-    for(string s:first[IndexA].sets){
-        first[IndexB].addSets(s);
+void Grammar::addFollowAtoFollowB(string A, string B) {
+    int IndexA, IndexB;
+    for (int i = 0; i < follow.size(); i++) {
+        if (follow[i].left == A) {
+            IndexA = i;
+            break;
+        }
+    }
+    for (int i = 0; i < follow.size(); i++) {
+        if (follow[i].left == B) {
+            IndexB = i;
+            break;
+        }
+    }
+    for (string s:follow[IndexA].sets) {
+        follow[IndexB].addSets(s);
+    };
+    if(debug){
+        cout << "[addFollowtoFollow]::add follow(" << follow[IndexA].left << "):[ ";
+        for (string s:follow[IndexA].sets)cout << s << " ";
+        cout << "] to follow(" << follow[IndexB].left << "):[ ";
+        for (string s:follow[IndexB].sets)cout << s << " ";
+        cout << "]" << endl;
     }
 }
 
-void Grammar::getFollow() {
+void Grammar::getFollow(string start) {
     follow.clear();
-    for(string s:no_terminates){
+    for (string s:no_terminates) {
         follow.push_back(TokenSet(s));
-        if(s==string("exp")){
+        if (s == start) {
             follow.back().addSets(terminates_$.front());
         }
     }
     vector<TokenSet> temp;
-    do{
+    do {
         temp = follow;
-        for(Production p:productions){
-            for(int i = 0;i<p.right.size();i++){
+        for (Production p:productions) {
+            for (int i = 0; i < p.right.size(); i++) {
                 string s = p.right[i];
-                if(!isTerminate(s)){
+                if (!isTerminate(s)) {
                     bool hasE = false;
-                    hasE = addFirstAtoFollowBWithoutE(getSubFirst(p.right,i+1),s);
-                    if(hasE)addFollowAtoFollowB(p.left,s);
+                    hasE = addFirstAtoFollowBWithoutE(getSubFirst(p.right, i + 1), s);
+                    if (hasE)addFollowAtoFollowB(p.left, s);
                 }
             }
         }
-    }while (isDifferent(temp,follow));
+    } while (isDifferent(temp, follow));
 }
 
 bool Grammar::isDifferent(vector<TokenSet> t1, vector<TokenSet> t2) {
-    for(unsigned int i = 0;i<t1.size();i++){
-        if(t1[i].sets!=t2[i].sets)return true;
+    for (unsigned int i = 0; i < t1.size(); i++) {
+        if (t1[i].sets != t2[i].sets)return true;
     }
     return false;
 }
 
 bool Grammar::isTerminate(string s) {
-    for(string t:terminates){
-        if(t==s)return true;
+    for (string t:terminates_$) {
+        if (t == s)return true;
     }
     return false;
 }
 
-void read_prog(string& prog)
-{
+void read_prog(string &prog) {
     char c;
-    while(scanf("%c",&c)!=EOF){
+    while (scanf("%c", &c) != EOF) {
         prog += c;
     }
 }
+
 /* 你可以添加其他函数 */
 
-void Analysis()
-{
+void Analysis() {
     string prog;
     //read_prog(prog);
     /* 骚年们 请开始你们的表演 */
     /********* Begin *********/
     Grammar g;
-    g.initTest();
+    g.debug=false;
+    g.init();
+    //g.initTest2();
     g.getFirst();
-    g.getFollow();
+    g.getFollow("program");
     g.show();
     /********* End *********/
 }
