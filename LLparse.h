@@ -17,6 +17,7 @@
 #include <sstream>
 #include <vector>
 #include <set>
+#include <iomanip>
 
 using namespace std;
 
@@ -51,15 +52,29 @@ public:
 class Grammar {
 public:
     bool debug;
+
     void getFirst();//通过产生式生成first
+
     void getFollow(string start);//生成follow集合
+
     bool isTerminate(string s);//判断是否是终止字符
+
     bool isDifferent(vector<TokenSet> t1, vector<TokenSet> t2);
+
     void show();//输出生成的productions，first，follow
+
     void init();//初始化工作
     void initTest1();
     void initTest2();
     void initTest3();
+
+    void addProduction(string s);
+
+    void getLLTable();
+
+    void showLLTable();
+
+    void showProduction(int index);
 
     bool addFirstAtoFirstBWithoutE(string A, string B);
 
@@ -72,6 +87,8 @@ public:
     vector<string> getSubFirst(vector<string> strings, int begin);
 
     set<string> getFirst(vector<string> strings);
+
+    set<string> getFollowSet(string s);
 
     Grammar();
 
@@ -136,148 +153,176 @@ void Grammar::init() {
     no_terminates.push_back(string("simpleexpr"));
     no_terminates.push_back(string("multexprprime"));
 
-    Production p = Production(string("program"));
-    p.addRight(string("compoundstmt"));
-    productions.push_back(p);
+    addProduction("program->compoundstmt");
+//    Production p = Production(string("program"));
+//    p.addRight(string("compoundstmt"));
+//    productions.push_back(p);
 
-    p = Production(string("stmt"));
-    p.addRight(string("ifstmt"));
-    productions.push_back(p);
+    addProduction("stmt->ifstmt");
+//    p = Production(string("stmt"));
+//    p.addRight(string("ifstmt"));
+//    productions.push_back(p);
 
-    p = Production(string("stmt"));
-    p.addRight(string("whilestmt"));
-    productions.push_back(p);
+    addProduction("stmt->whilestmt");
+//    p = Production(string("stmt"));
+//    p.addRight(string("whilestmt"));
+//    productions.push_back(p);
 
-    p = Production(string("stmt"));
-    p.addRight(string("assgstmt"));
-    productions.push_back(p);
+    addProduction("stmt->assgstmt");
+//    p = Production(string("stmt"));
+//    p.addRight(string("assgstmt"));
+//    productions.push_back(p);
 
-    p = Production(string("stmt"));
-    p.addRight(string("compoundstmt"));
-    productions.push_back(p);
+    addProduction("stmt->compoundstmt");
+//    p = Production(string("stmt"));
+//    p.addRight(string("compoundstmt"));
+//    productions.push_back(p);
 
-    p = Production(string("compoundstmt"));
-    p.addRight(string("{"));
-    p.addRight(string("stmts"));
-    p.addRight(string("}"));
-    productions.push_back(p);
+    addProduction("compoundstmt->{ stmts }");
+//    p = Production(string("compoundstmt"));
+//    p.addRight(string("{"));
+//    p.addRight(string("stmts"));
+//    p.addRight(string("}"));
+//    productions.push_back(p);
 
-    p = Production(string("stmts"));
-    p.addRight(string("stmt"));
-    p.addRight(string("stmts"));
-    productions.push_back(p);
+    addProduction("stmts->stmt stmts");
+//    p = Production(string("stmts"));
+//    p.addRight(string("stmt"));
+//    p.addRight(string("stmts"));
+//    productions.push_back(p);
 
-    p = Production(string("stmts"));
-    p.addRight(string("E"));
-    productions.push_back(p);
+    addProduction("stmts->E");
+//    p = Production(string("stmts"));
+//    p.addRight(string("E"));
+//    productions.push_back(p);
 
-    p = Production(string("ifstmt"));
-    p.addRight(string("if"));
-    p.addRight(string("("));
-    p.addRight(string("boolexpr"));
-    p.addRight(string(")"));
-    p.addRight(string("then"));
-    p.addRight(string("stmt"));
-    p.addRight(string("else"));
-    p.addRight(string("stmt"));
-    productions.push_back(p);
+    addProduction("ifstmt->if ( boolexpr ) then stmt else stmt");
+//    p = Production(string("ifstmt"));
+//    p.addRight(string("if"));
+//    p.addRight(string("("));
+//    p.addRight(string("boolexpr"));
+//    p.addRight(string(")"));
+//    p.addRight(string("then"));
+//    p.addRight(string("stmt"));
+//    p.addRight(string("else"));
+//    p.addRight(string("stmt"));
+//    productions.push_back(p);
 
-    p = Production(string("whilestmt"));
-    p.addRight(string("while"));
-    p.addRight(string("("));
-    p.addRight(string("boolexpr"));
-    p.addRight(string(")"));
-    p.addRight(string("stmt"));
-    productions.push_back(p);
+    addProduction("whilestmt->while ( boolexpr ) stmt");
+//    p = Production(string("whilestmt"));
+//    p.addRight(string("while"));
+//    p.addRight(string("("));
+//    p.addRight(string("boolexpr"));
+//    p.addRight(string(")"));
+//    p.addRight(string("stmt"));
+//    productions.push_back(p);
 
-    p = Production(string("assgstmt"));
-    p.addRight(string("ID"));
-    p.addRight(string("="));
-    p.addRight(string("arithexpr"));
-    p.addRight(string(";"));
-    productions.push_back(p);
+    addProduction("assgstmt->ID = arithexpr ;");
+//    p = Production(string("assgstmt"));
+//    p.addRight(string("ID"));
+//    p.addRight(string("="));
+//    p.addRight(string("arithexpr"));
+//    p.addRight(string(";"));
+//    productions.push_back(p);
 
-    p = Production(string("boolexpr"));
-    p.addRight(string("arithexpr"));
-    p.addRight(string("boolop"));
-    p.addRight(string("arithexpr"));
-    productions.push_back(p);
+    addProduction("boolexpr->arithexpr boolop arithexpr");
+//    p = Production(string("boolexpr"));
+//    p.addRight(string("arithexpr"));
+//    p.addRight(string("boolop"));
+//    p.addRight(string("arithexpr"));
+//    productions.push_back(p);
 
-    p = Production(string("boolop"));
-    p.addRight(string("<"));
-    productions.push_back(p);
+    addProduction("boolop-><");
+//    p = Production(string("boolop"));
+//    p.addRight(string("<"));
+//    productions.push_back(p);
 
-    p = Production(string("boolop"));
-    p.addRight(string(">"));
-    productions.push_back(p);
+    addProduction("boolop->>");
+//    p = Production(string("boolop"));
+//    p.addRight(string(">"));
+//    productions.push_back(p);
 
-    p = Production(string("boolop"));
-    p.addRight(string("<="));
-    productions.push_back(p);
+    addProduction("boolop-><=");
+//    p = Production(string("boolop"));
+//    p.addRight(string("<="));
+//    productions.push_back(p);
 
-    p = Production(string("boolop"));
-    p.addRight(string(">="));
-    productions.push_back(p);
+    addProduction("boolop->>=");
+//    p = Production(string("boolop"));
+//    p.addRight(string(">="));
+//    productions.push_back(p);
 
-    p = Production(string("boolop"));
-    p.addRight(string("=="));
-    productions.push_back(p);
+    addProduction("boolop->==");
+//    p = Production(string("boolop"));
+//    p.addRight(string("=="));
+//    productions.push_back(p);
 
-    p = Production(string("arithexpr"));
-    p.addRight(string("multexpr"));
-    p.addRight(string("arithexprprime"));
-    productions.push_back(p);
+    addProduction("arithexpr->multexpr arithexprprime");
+//    p = Production(string("arithexpr"));
+//    p.addRight(string("multexpr"));
+//    p.addRight(string("arithexprprime"));
+//    productions.push_back(p);
 
-    p = Production(string("arithexprprime"));
-    p.addRight(string("+"));
-    p.addRight(string("multexpr"));
-    p.addRight(string("arithexprprime"));
-    productions.push_back(p);
+    addProduction("arithexprprime->+ multexpr arithexprprime");
+//    p = Production(string("arithexprprime"));
+//    p.addRight(string("+"));
+//    p.addRight(string("multexpr"));
+//    p.addRight(string("arithexprprime"));
+//    productions.push_back(p);
 
-    p = Production(string("arithexprprime"));
-    p.addRight(string("-"));
-    p.addRight(string("multexpr"));
-    p.addRight(string("arithexprprime"));
-    productions.push_back(p);
+    addProduction("arithexprprime->- multexpr arithexprprime");
+//    p = Production(string("arithexprprime"));
+//    p.addRight(string("-"));
+//    p.addRight(string("multexpr"));
+//    p.addRight(string("arithexprprime"));
+//    productions.push_back(p);
 
-    p = Production(string("arithexprprime"));
-    p.addRight(string("E"));
-    productions.push_back(p);
+    addProduction("arithexprprime->E");
+//    p = Production(string("arithexprprime"));
+//    p.addRight(string("E"));
+//    productions.push_back(p);
 
-    p = Production(string("multexpr"));
-    p.addRight(string("simpleexpr"));
-    p.addRight(string("multexprprime"));
-    productions.push_back(p);
+    addProduction("multexpr->simpleexpr multexprprime");
+//    p = Production(string("multexpr"));
+//    p.addRight(string("simpleexpr"));
+//    p.addRight(string("multexprprime"));
+//    productions.push_back(p);
 
-    p = Production(string("multexprprime"));
-    p.addRight(string("*"));
-    p.addRight(string("simpleexpr"));
-    p.addRight(string("multexprprime"));
-    productions.push_back(p);
+    addProduction("multexprprime->* simpleexpr multexprprime");
+//    p = Production(string("multexprprime"));
+//    p.addRight(string("*"));
+//    p.addRight(string("simpleexpr"));
+//    p.addRight(string("multexprprime"));
+//    productions.push_back(p);
 
-    p = Production(string("multexprprime"));
-    p.addRight(string("/"));
-    p.addRight(string("simpleexpr"));
-    p.addRight(string("multexprprime"));
-    productions.push_back(p);
+    addProduction("multexprprime->/ simpleexpr multexprprime");
+//    p = Production(string("multexprprime"));
+//    p.addRight(string("/"));
+//    p.addRight(string("simpleexpr"));
+//    p.addRight(string("multexprprime"));
+//    productions.push_back(p);
 
-    p = Production(string("multexprprime"));
-    p.addRight(string("E"));
-    productions.push_back(p);
+    addProduction("multexprprime->E");
+//    p = Production(string("multexprprime"));
+//    p.addRight(string("E"));
+//    productions.push_back(p);
 
-    p = Production(string("simpleexpr"));
-    p.addRight("ID");
-    productions.push_back(p);
+    addProduction("simpleexpr->ID");
+//    p = Production(string("simpleexpr"));
+//    p.addRight("ID");
+//    productions.push_back(p);
 
-    p = Production(string("simpleexpr"));
-    p.addRight("NUM");
-    productions.push_back(p);
+    addProduction("simpleexpr->NUM");
+//    p = Production(string("simpleexpr"));
+//    p.addRight("NUM");
+//    productions.push_back(p);
 
-    p = Production(string("simpleexpr"));
-    p.addRight("(");
-    p.addRight("arithexpr");
-    p.addRight(")");
-    productions.push_back(p);
+    addProduction("simpleexpr->( arithexpr )");
+//    p = Production(string("simpleexpr"));
+//    p.addRight("(");
+//    p.addRight("arithexpr");
+//    p.addRight(")");
+//    productions.push_back(p);
 }
 
 void Grammar::initTest1() {
@@ -297,47 +342,49 @@ void Grammar::initTest1() {
     no_terminates.push_back(string("mulop"));
     no_terminates.push_back(string("factor"));
 
-    Production p = Production(string("exp"));
-    p.addRight(string("exp"));
-    p.addRight(string("addop"));
-    p.addRight(string("term"));
-    productions.push_back(p);
+//    Production p = Production(string("exp"));
+//    p.addRight(string("exp"));
+//    p.addRight(string("addop"));
+//    p.addRight(string("term"));
+//    productions.push_back(p);
+    addProduction("exp->exp addop term");
+//    p = Production(string("exp"));
+//    p.addRight(string("term"));
+//    productions.push_back(p);
+    addProduction("exp->term");
+//    p = Production(string("addop"));
+//    p.addRight(string("+"));
+//    productions.push_back(p);
+    addProduction("addop->+");
+//    p = Production(string("addop"));
+//    p.addRight(string("-"));
+//    productions.push_back(p);
+    addProduction("addop->-");
+//    p = Production(string("term"));
+//    p.addRight(string("term"));
+//    p.addRight(string("mulop"));
+//    p.addRight(string("factor"));
+//    productions.push_back(p);
+//
+//    p = Production(string("term"));
+//    p.addRight(string("factor"));
+//    productions.push_back(p);
+//
+//    p = Production(string("mulop"));
+//    p.addRight(string("*"));
+//    productions.push_back(p);
+//
+//    p = Production(string("factor"));
+//    p.addRight(string("("));
+//    p.addRight(string("exp"));
+//    p.addRight(string(")"));
+//    productions.push_back(p);
 
-    p = Production(string("exp"));
-    p.addRight(string("term"));
-    productions.push_back(p);
+//    p = Production(string("factor"));
+//    p.addRight("number");
+//    productions.push_back(p);
 
-    p = Production(string("addop"));
-    p.addRight(string("+"));
-    productions.push_back(p);
-
-    p = Production(string("addop"));
-    p.addRight(string("-"));
-    productions.push_back(p);
-
-    p = Production(string("term"));
-    p.addRight(string("term"));
-    p.addRight(string("mulop"));
-    p.addRight(string("factor"));
-    productions.push_back(p);
-
-    p = Production(string("term"));
-    p.addRight(string("factor"));
-    productions.push_back(p);
-
-    p = Production(string("mulop"));
-    p.addRight(string("*"));
-    productions.push_back(p);
-
-    p = Production(string("factor"));
-    p.addRight(string("("));
-    p.addRight(string("exp"));
-    p.addRight(string(")"));
-    productions.push_back(p);
-
-    p = Production(string("factor"));
-    p.addRight("number");
-    productions.push_back(p);
+    addProduction("factor->number");
 }
 
 void Grammar::initTest2() {
@@ -423,6 +470,40 @@ void Grammar::initTest3() {
     productions.push_back(p);
 }
 
+void Grammar::addProduction(string s){
+    int start = 0;
+    int end = 0;
+    for(int i = 0;i<s.size()-1;i++){
+        if(s[i]=='-'&&s[i+1]=='>'){
+            end = i-1;
+            break;
+        }
+    }
+    string string1;
+    string1 = s.substr(start,end-start+1);
+    Production p = Production(string1);
+    start=end+3;
+    while (start<s.size()){
+        for(end = start+1;end<s.size();end++){
+            if(s[end]==' '){
+                end = end-1;
+                break;
+            }
+        }
+        string1 = s.substr(start,end-start+1);
+        p.addRight(string1);
+        start = end+2;
+    }
+    productions.push_back(p);
+    if(debug){
+        cout<<"[addProduction]:: "<<p.left<<"->";
+        for(string s2:p.right){
+            cout<<s2<<",";
+        }
+        cout<<endl;
+    }
+}
+
 void Grammar::show() {
     cout << "terminates:" << endl;
     for (string s :terminates)cout << s << endl;
@@ -454,6 +535,8 @@ void Grammar::show() {
         for (string s:tokenSet.sets)cout << s << " ";
         cout << "]" << endl;
     }
+
+    showLLTable();
 }
 
 void Grammar::getFirst() {
@@ -661,6 +744,17 @@ void Grammar::getFollow(string start) {
     } while (isDifferent(temp, follow));
 }
 
+set<string> Grammar::getFollowSet(string s){
+    int index = 0;
+    for(int i = 0;i<follow.size();i++){
+        if(follow[i].left==s){
+            index = i;
+            break;
+        }
+    }
+    return follow[index].sets;
+}
+
 bool Grammar::isDifferent(vector<TokenSet> t1, vector<TokenSet> t2) {
     for (unsigned int i = 0; i < t1.size(); i++) {
         if (t1[i].sets != t2[i].sets)return true;
@@ -673,6 +767,113 @@ bool Grammar::isTerminate(string s) {
         if (t == s)return true;
     }
     return false;
+}
+
+void Grammar::getLLTable(){
+    vector<vector<int>> vector1(terminates_$.size(),vector<int>(no_terminates.size(),-1));
+
+    for(int i = 0;i<productions.size();i++){
+        Production p = productions[i];
+        set<string> first_set;
+        first_set = getFirst(p.right);
+        bool hasE = false;
+        for(string s:first_set){
+            if(s == "E")hasE = true;
+            int TerminatesIndex=0;
+            int NoterminatesIndex=0;
+
+            for(int j = 0;j<terminates_$.size();j++){
+                if(terminates_$[j]==s){
+                    TerminatesIndex = j;
+                    break;
+                }
+            }
+
+            for(int j = 0;j<no_terminates.size();j++){
+                if(no_terminates[j]==p.left){
+                    NoterminatesIndex = j;
+                    break;
+                }
+            }
+            vector1[TerminatesIndex][NoterminatesIndex] = i;
+            if(debug){
+                cout<<"[getLLTable]:: M["<<no_terminates[NoterminatesIndex]<<","<<terminates_$[TerminatesIndex]<<"]";
+                showProduction(i);
+            }
+        }
+
+        if(hasE){
+            set<string> follow_set;
+            follow_set = getFollowSet(p.left);
+            int NoterminatesIndex=0;
+
+            for(int j = 0;j<no_terminates.size();j++){
+                if(no_terminates[j]==p.left){
+                    NoterminatesIndex = j;
+                    break;
+                }
+            }
+
+            for(string s:follow_set){
+                int TerminatesIndex;
+                for(int j = 0;j<terminates_$.size();j++){
+                    if(terminates_$[j]==s){
+                        TerminatesIndex = j;
+                        break;
+                    }
+                }
+                vector1[TerminatesIndex][NoterminatesIndex]=i;
+                if(debug){
+                    cout<<"[getLLTable]:: M["<<no_terminates[NoterminatesIndex]<<","<<terminates_$[TerminatesIndex]<<"]";
+                    showProduction(i);
+                }
+            }
+        }
+
+        LLTable = vector1;
+    }
+}
+
+void Grammar::showLLTable() {
+    for(int i = 0;i < terminates_$.size();i++){
+        for(int j = 0;j < no_terminates.size();j++){
+            cout<<"M[ "<<terminates_$[i]<<", "<<no_terminates[j]<<" ]:";
+            if(LLTable[i][j]!=-1){
+                showProduction(LLTable[i][j]);
+            }
+            cout<<endl;
+        }
+    }
+
+    cout<<"LLTable"<<endl;
+    cout<<"| |";
+    for(int i = 0;i<terminates_$.size();i++){
+        cout<<terminates_$[i]<<"|";
+    }
+    cout<<endl;
+    cout<<"|:-:|";
+    for(int i = 0;i<terminates_$.size();i++){
+        cout<<":-:|";
+    }
+    cout<<endl;
+    for(int i = 0;i<no_terminates.size();i++){
+        cout<<"|"<<no_terminates[i];
+        for(int j = 0;j<terminates_$.size();j++){
+            if(LLTable[j][i]!= -1){
+                showProduction(LLTable[j][i]);
+                //cout<<k<<" ";
+            }
+            cout<<"|";
+        }
+        cout<<endl;
+    }
+}
+
+void Grammar::showProduction(int index){
+    cout<<productions[index].left<<" -> ";
+    for(string s:productions[index].right){
+        cout<<s<<" ";
+    }
 }
 
 void read_prog(string &prog) {
@@ -690,11 +891,13 @@ void Analysis() {
     /* 骚年们 请开始你们的表演 */
     /********* Begin *********/
     Grammar g;
-    g.debug=false;
+    g.debug=true;
     g.init();
-    //g.initTest2();
+    //g.initTest1();
     g.getFirst();
     g.getFollow("program");
+    g.getLLTable();
     g.show();
+    //g.addProduction("ni->hao nice a");
     /********* End *********/
 }
