@@ -17,7 +17,6 @@
 #include <sstream>
 #include <vector>
 #include <set>
-#include <iomanip>
 
 using namespace std;
 
@@ -90,6 +89,8 @@ public:
 
     set<string> getFollowSet(string s);
 
+    void getTokens(string src);
+
     Grammar();
 
 private:
@@ -100,6 +101,7 @@ private:
     vector<string> terminates_$;//带有$的终止符集合
     vector<string> no_terminates;//非终止符
     vector<vector<int>> LLTable;//LL分析表
+    vector<string> tokens;
 };
 
 Grammar::Grammar() {
@@ -876,6 +878,40 @@ void Grammar::showProduction(int index){
     }
 }
 
+void passWiteAndSpace(string s,int& begin){
+    while (begin<s.size()){
+        if(s[begin]==' '||s[begin]=='\n'){
+            begin++;
+        }else{
+            break;
+        }
+    }
+}
+
+void Grammar::getTokens(string src){
+    int begin = 0;
+    int length = 1;
+    vector<string> result;
+    result.clear();
+    string target;
+    while (begin<src.size()){
+        passWiteAndSpace(src,begin);
+        length = 1;
+        while (begin+length<src.size()){
+            if(src[begin+length]!=' '&&src[begin+length]!='\n'){
+                length++;
+            }else{
+                break;
+            }
+        }
+        target = src.substr(begin,length);
+        cout<<"getTokne:"<<target<<endl;
+        result.push_back(target);
+        begin = begin+length;
+    }
+    tokens=result;
+}
+
 void read_prog(string &prog) {
     char c;
     while (scanf("%c", &c) != EOF) {
@@ -887,17 +923,17 @@ void read_prog(string &prog) {
 
 void Analysis() {
     string prog;
-    //read_prog(prog);
+    read_prog(prog);
     /* 骚年们 请开始你们的表演 */
     /********* Begin *********/
-    Grammar g;
-    g.debug=true;
-    g.init();
-    //g.initTest1();
-    g.getFirst();
-    g.getFollow("program");
-    g.getLLTable();
-    g.show();
-    //g.addProduction("ni->hao nice a");
+//    Grammar g;
+//    g.debug=true;
+//    g.init();
+//    //g.initTest1();
+//    g.getFirst();
+//    g.getFollow("program");
+//    g.getLLTable();
+//    getTokens(prog);
+//    g.show();
     /********* End *********/
 }
