@@ -17,6 +17,7 @@
 #include <sstream>
 #include <vector>
 #include <set>
+#include <stack>
 
 using namespace std;
 
@@ -91,6 +92,8 @@ public:
 
     void getTokens(string src);
 
+    void analysis();
+
     Grammar();
 
 private:
@@ -102,6 +105,8 @@ private:
     vector<string> no_terminates;//非终止符
     vector<vector<int>> LLTable;//LL分析表
     vector<string> tokens;
+    stack<string> parsingStack;
+    string startSymbol;
 };
 
 Grammar::Grammar() {
@@ -112,6 +117,7 @@ Grammar::Grammar() {
     terminates_$.clear();
     LLTable.clear();
     debug=true;
+    tokens.clear();
 }
 
 void Grammar::init() {
@@ -724,9 +730,10 @@ void Grammar::addFollowAtoFollowB(string A, string B) {
 
 void Grammar::getFollow(string start) {
     follow.clear();
+    startSymbol = start;
     for (string s:no_terminates) {
         follow.push_back(TokenSet(s));
-        if (s == start) {
+        if (s == startSymbol) {
             follow.back().addSets(terminates_$.front());
         }
     }
@@ -905,11 +912,39 @@ void Grammar::getTokens(string src){
             }
         }
         target = src.substr(begin,length);
-        cout<<"getTokne:"<<target<<endl;
+        if(debug){
+            cout<<"getTokne:"<<target<<endl;
+        }
         result.push_back(target);
         begin = begin+length;
     }
     tokens=result;
+}
+
+void Grammar::analysis() {
+    parsingStack.push(startSymbol);
+    int tokenIndex = 0;
+    string nextToken = tokens[tokenIndex];
+    while (parsingStack.top()!=terminates_$[0]&&nextToken!=terminates_$[0]){
+        string top = parsingStack.top();
+        if(isTerminate(top)&&nextToken==top){
+            parsingStack.pop();
+            tokenIndex++;
+            nextToken = tokens[tokenIndex];
+        } else if(!isTerminate(top)&&isTerminate(nextToken)/*need to finish findProduction function*/){
+            parsingStack.pop();
+//            for(int i = p.sets.size()-1;i>=0;i--){
+//                parsingStack.push(p.sets[i])
+//            }
+        }else{
+            cout<<"error"<<endl;
+        }
+    }
+    if (parsingStack.top()==terminates_$[0]&&nextToken==terminates_$[0]){
+        cout<<"accept"<<endl;
+    }else{
+        cout<<"error"<<endl;
+    }
 }
 
 void read_prog(string &prog) {
@@ -923,7 +958,7 @@ void read_prog(string &prog) {
 
 void Analysis() {
     string prog;
-    read_prog(prog);
+//    read_prog(prog);
     /* 骚年们 请开始你们的表演 */
     /********* Begin *********/
 //    Grammar g;
