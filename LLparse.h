@@ -49,6 +49,22 @@ public:
     void addSets(string t) { sets.insert(t); };
 };
 
+class TreeNode{
+public:
+    string val;
+    int length;
+    vector<TreeNode*> child;
+    TreeNode(string s,int len){
+        val = s;
+        length = len;
+        child.clear();
+    }
+    void showTreeNode(){
+        for(int i = 0;i<length;i++)cout<<" ";
+        cout<<val<<endl;
+    }
+};
+
 class Grammar {
 public:
     bool debug;
@@ -58,6 +74,8 @@ public:
     void getFollow(string start);//生成follow集合
 
     bool isTerminate(string s);//判断是否是终止字符
+
+    bool isNoterminate(string s);
 
     bool isDifferent(vector<TokenSet> t1, vector<TokenSet> t2);
 
@@ -78,6 +96,8 @@ public:
 
     void showProduction(int index);
 
+    void showProduction(Production p);
+
     bool addFirstAtoFirstBWithoutE(string A, string B);
 
     void addEtoFirstA(string A);
@@ -96,6 +116,8 @@ public:
 
     void analysis();
 
+    void showAnalysisInput(int begin);
+
     Grammar();
 
 private:
@@ -107,7 +129,7 @@ private:
     vector<string> no_terminates;//非终止符
     vector<vector<int>> LLTable;//LL分析表
     vector<string> tokens;
-    stack<string> parsingStack;
+    stack<TreeNode> parsingStack;
     string startSymbol;
 };
 
@@ -520,13 +542,13 @@ void Grammar::show() {
     cout << endl;
 
     cout << "noterminates:" << endl;
-    for (string s:no_terminates)cout << s << endl;
+    for (const string &s:no_terminates)cout << s << endl;
     cout << endl;
 
     cout << "productions:" << endl;
     for (Production p:productions) {
         cout << p.left << "  ->  ";
-        for (string s:p.right)cout << s << " ";
+        for (const string &s:p.right)cout << s << " ";
         cout << endl;
     }
     cout << endl;
@@ -578,12 +600,12 @@ void Grammar::getFirst() {
 
 set<string> Grammar::getFirst(vector<string> strings) {//stmts
     int k = 0;
-    bool Contione = true;
+    bool Continue = true;
     set<string> result;
     result.clear();
     int index = 0;
 
-    while (Contione && k < strings.size()) {//first(XiX2....Xn)->follow(xi-1)//add follow(A)->follow(xi-1)
+    while (Continue && k < strings.size()) {//first(XiX2....Xn)->follow(xi-1)//add follow(A)->follow(xi-1)
         for (int i = 0; i < first.size(); i++) {
             if (first[i].left == strings[k]) {
                 index = i;
@@ -599,10 +621,10 @@ set<string> Grammar::getFirst(vector<string> strings) {//stmts
                 hasE = true;
             }
         }
-        if (!hasE) Contione = false;
+        if (!hasE) Continue = false;
         k++;
     }
-    if (Contione)result.insert(string("E"));
+    if (Continue)result.insert(string("E"));
 
     if(debug){
         cout << "[getFirst]::first set( ";
@@ -610,7 +632,7 @@ set<string> Grammar::getFirst(vector<string> strings) {//stmts
         cout << ") " << ":[ ";
         for (string s:result)cout << s << " ";
         cout << "] " << endl;
-        if (Contione)cout << "[getFirst]::has E" << endl;
+        if (Continue)cout << "[getFirst]::has E" << endl;
     }
     return result;
 }
@@ -654,7 +676,7 @@ bool Grammar::addFirstAtoFirstBWithoutE(string A, string B) {
     }
     if(debug){
         cout << "[addFirstAtoFirstBWithoutE]::first("<<first[IndexA].left<<"):[ ";
-        for (string s:first[IndexA].sets)cout << s << " ";
+        for (const string &s:first[IndexA].sets)cout << s << " ";
         cout << "] to first("<<first[IndexB].left<<"):[ ";
         for (string s:first[IndexB].sets)cout << s << " ";
         cout << "]" << endl;
@@ -705,7 +727,8 @@ bool Grammar::addFirstAtoFollowBWithoutE(vector<string> A, string B) {
 }
 
 void Grammar::addFollowAtoFollowB(string A, string B) {
-    int IndexA, IndexB;
+    int IndexA=0;
+    int IndexB=0;
     for (int i = 0; i < follow.size(); i++) {
         if (follow[i].left == A) {
             IndexA = i;
@@ -722,7 +745,7 @@ void Grammar::addFollowAtoFollowB(string A, string B) {
         follow[IndexB].addSets(s);
     };
     if(debug){
-        cout << "[addFollowtoFollow]::add follow(" << follow[IndexA].left << "):[ ";
+        cout << "[addFollowToFollow]::add follow(" << follow[IndexA].left << "):[ ";
         for (string s:follow[IndexA].sets)cout << s << " ";
         cout << "] to follow(" << follow[IndexB].left << "):[ ";
         for (string s:follow[IndexB].sets)cout << s << " ";
@@ -780,6 +803,13 @@ bool Grammar::isTerminate(string s) {
     return false;
 }
 
+bool Grammar::isNoterminate(string s){
+    for(string t:no_terminates){
+        if(t == s)return true;
+    }
+    return false;
+}
+
 void Grammar::getLLTable(){
     vector<vector<int>> vector1(terminates_$.size(),vector<int>(no_terminates.size(),-1));
 
@@ -808,8 +838,9 @@ void Grammar::getLLTable(){
             }
             vector1[TerminatesIndex][NoterminatesIndex] = i;
             if(debug){
-                cout<<"[getLLTable]:: M["<<no_terminates[NoterminatesIndex]<<","<<terminates_$[TerminatesIndex]<<"]";
+                cout<<"[getLLTable]:: M["<<no_terminates[NoterminatesIndex]<<","<<terminates_$[TerminatesIndex]<<"] ";
                 showProduction(i);
+                cout<<endl;
             }
         }
 
@@ -837,6 +868,7 @@ void Grammar::getLLTable(){
                 if(debug){
                     cout<<"[getLLTable]:: M["<<no_terminates[NoterminatesIndex]<<","<<terminates_$[TerminatesIndex]<<"]";
                     showProduction(i);
+                    cout<<endl;
                 }
             }
         }
@@ -855,30 +887,8 @@ void Grammar::showLLTable() {
             cout<<endl;
         }
     }
-
-    cout<<"LLTable"<<endl;
-    cout<<"| |";
-    for(int i = 0;i<terminates_$.size();i++){
-        cout<<terminates_$[i]<<"|";
-    }
-    cout<<endl;
-    cout<<"|:-:|";
-    for(int i = 0;i<terminates_$.size();i++){
-        cout<<":-:|";
-    }
-    cout<<endl;
-    for(int i = 0;i<no_terminates.size();i++){
-        cout<<"|"<<no_terminates[i];
-        for(int j = 0;j<terminates_$.size();j++){
-            if(LLTable[j][i]!= -1){
-                showProduction(LLTable[j][i]);
-                //cout<<k<<" ";
-            }
-            cout<<"|";
-        }
-        cout<<endl;
-    }
 }
+
 bool Grammar::findProduction(string terminate,string no_terminate,Production& result){
     int terminateIndex=0;
     int no_terminateIndex=0;
@@ -895,7 +905,6 @@ bool Grammar::findProduction(string terminate,string no_terminate,Production& re
             break;
         }
     }
-
     if(LLTable[terminateIndex][no_terminateIndex]==-1){
         return false;
     }else{
@@ -907,6 +916,13 @@ bool Grammar::findProduction(string terminate,string no_terminate,Production& re
 void Grammar::showProduction(int index){
     cout<<productions[index].left<<" -> ";
     for(string s:productions[index].right){
+        cout<<s<<" ";
+    }
+}
+
+void Grammar::showProduction(Production p){
+    cout<<p.left<<"->";
+    for(string s:p.right){
         cout<<s<<" ";
     }
 }
@@ -944,30 +960,60 @@ void Grammar::getTokens(string src){
         result.push_back(target);
         begin = begin+length;
     }
+    result.push_back("$");
     tokens=result;
 }
 
+void Grammar::showAnalysisInput(int begin){
+    for(int i = begin;i<tokens.size();i++){
+        cout<<tokens[i]<<" ";
+    }
+}
+
 void Grammar::analysis() {
-    parsingStack.push(startSymbol);
+    parsingStack.push(TreeNode(terminates_$[0],0));
+    parsingStack.push(TreeNode(startSymbol,0));
     int tokenIndex = 0;
     string nextToken = tokens[tokenIndex];
-    while (parsingStack.top()!=terminates_$[0]&&nextToken!=terminates_$[0]){
-        string top = parsingStack.top();
+    int parseTreeIndex = 0;
+
+
+    while (parsingStack.top().val!=terminates_$[0]&&nextToken!=terminates_$[0]){
+        TreeNode top = parsingStack.top();
         Production p = Production("$");
-        if(isTerminate(top)&&nextToken==top){
+        if(debug){
+            cout<<"[analysis]::";
+            showAnalysisInput(tokenIndex);
+            cout<<"stack top:"<<top.val<<"\t nextToken:"<<nextToken<<"\t";
+        }
+        if(top.val=="E"){
+            top.showTreeNode();
+            parsingStack.pop();
+        }
+        else if(isTerminate(top.val)&&(nextToken==top.val)){
+            top.showTreeNode();
             parsingStack.pop();
             tokenIndex++;
             nextToken = tokens[tokenIndex];
-        } else if(!isTerminate(top)&&isTerminate(nextToken)&&findProduction(top,nextToken,p)){
+            if(debug){ cout<<"match"<<endl; }
+
+        } else if(isNoterminate(top.val)&&isTerminate(nextToken)&&findProduction(nextToken,top.val,p)){
+            int length = top.length;
+            top.showTreeNode();
             parsingStack.pop();
             for(int i = p.right.size()-1;i>=0;i--){
-                parsingStack.push(p.right[i]);
+                    parsingStack.push(TreeNode(p.right[i],length+1));
+            }
+            if(debug){
+                cout<<"generate: ";
+                showProduction(p);
+                cout<<endl;
             }
         }else{
-            cout<<"error"<<endl;
+            break;
         }
     }
-    if (parsingStack.top()==terminates_$[0]&&nextToken==terminates_$[0]){
+    if (parsingStack.top().val==terminates_$[0]&&nextToken==terminates_$[0]){
         cout<<"accept"<<endl;
     }else{
         cout<<"error"<<endl;
@@ -984,18 +1030,19 @@ void read_prog(string &prog) {
 /* 你可以添加其他函数 */
 
 void Analysis() {
-    string prog;
+    string prog = "{\n    ID = NUM ;\n}";
 //    read_prog(prog);
     /* 骚年们 请开始你们的表演 */
     /********* Begin *********/
-//    Grammar g;
-//    g.debug=true;
-//    g.init();
-//    //g.initTest1();
-//    g.getFirst();
-//    g.getFollow("program");
-//    g.getLLTable();
-//    getTokens(prog);
-//    g.show();
+    Grammar g;
+    g.debug= false;
+    g.init();
+    //g.initTest1();
+    g.getFirst();
+    g.getFollow("program");
+    g.getLLTable();
+    g.getTokens(prog);
+    //g.show();
+    g.analysis();
     /********* End *********/
 }
