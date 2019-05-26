@@ -130,6 +130,7 @@ private:
     vector<vector<int>> LLTable;//LL分析表
     vector<string> tokens;
     stack<TreeNode> parsingStack;
+    vector<TreeNode> parsingOutput;
     string startSymbol;
 };
 
@@ -142,6 +143,7 @@ Grammar::Grammar() {
     LLTable.clear();
     debug=true;
     tokens.clear();
+    parsingOutput.clear();
 }
 
 void Grammar::init() {
@@ -975,8 +977,7 @@ void Grammar::analysis() {
     parsingStack.push(TreeNode(startSymbol,0));
     int tokenIndex = 0;
     string nextToken = tokens[tokenIndex];
-    int parseTreeIndex = 0;
-
+    bool accept = true;
 
     while (parsingStack.top().val!=terminates_$[0]&&nextToken!=terminates_$[0]){
         TreeNode top = parsingStack.top();
@@ -987,11 +988,11 @@ void Grammar::analysis() {
             cout<<"stack top:"<<top.val<<"\t nextToken:"<<nextToken<<"\t";
         }
         if(top.val=="E"){
-            top.showTreeNode();
+            parsingOutput.push_back(top);
             parsingStack.pop();
         }
         else if(isTerminate(top.val)&&(nextToken==top.val)){
-            top.showTreeNode();
+            parsingOutput.push_back(top);
             parsingStack.pop();
             tokenIndex++;
             nextToken = tokens[tokenIndex];
@@ -999,7 +1000,7 @@ void Grammar::analysis() {
 
         } else if(isNoterminate(top.val)&&isTerminate(nextToken)&&findProduction(nextToken,top.val,p)){
             int length = top.length;
-            top.showTreeNode();
+            parsingOutput.push_back(top);
             parsingStack.pop();
             for(int i = p.right.size()-1;i>=0;i--){
                     parsingStack.push(TreeNode(p.right[i],length+1));
@@ -1014,9 +1015,14 @@ void Grammar::analysis() {
         }
     }
     if (parsingStack.top().val==terminates_$[0]&&nextToken==terminates_$[0]){
-        cout<<"accept"<<endl;
+        accept = true;
     }else{
+        accept = false;
         cout<<"error"<<endl;
+    }
+
+    if(accept){
+        for(TreeNode t:parsingOutput)t.showTreeNode();
     }
 }
 
