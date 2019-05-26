@@ -70,6 +70,8 @@ public:
 
     void addProduction(string s);
 
+    bool findProduction(string terminate,string no_terminate,Production& result);
+
     void getLLTable();
 
     void showLLTable();
@@ -877,6 +879,30 @@ void Grammar::showLLTable() {
         cout<<endl;
     }
 }
+bool Grammar::findProduction(string terminate,string no_terminate,Production& result){
+    int terminateIndex=0;
+    int no_terminateIndex=0;
+    for(int i = 0;i<terminates_$.size();i++){
+        if(terminates_$[i]==terminate){
+            terminateIndex = i;
+            break;
+        }
+    }
+
+    for(int i = 0;i<no_terminates.size();i++){
+        if(no_terminates[i]==no_terminate){
+            no_terminateIndex = i;
+            break;
+        }
+    }
+
+    if(LLTable[terminateIndex][no_terminateIndex]==-1){
+        return false;
+    }else{
+        result = productions[LLTable[terminateIndex][no_terminateIndex]];
+        return true;
+    }
+}
 
 void Grammar::showProduction(int index){
     cout<<productions[index].left<<" -> ";
@@ -885,7 +911,7 @@ void Grammar::showProduction(int index){
     }
 }
 
-void passWiteAndSpace(string s,int& begin){
+void passWhiteAndSpace(string s,int& begin){
     while (begin<s.size()){
         if(s[begin]==' '||s[begin]=='\n'){
             begin++;
@@ -902,7 +928,7 @@ void Grammar::getTokens(string src){
     result.clear();
     string target;
     while (begin<src.size()){
-        passWiteAndSpace(src,begin);
+        passWhiteAndSpace(src,begin);
         length = 1;
         while (begin+length<src.size()){
             if(src[begin+length]!=' '&&src[begin+length]!='\n'){
@@ -927,15 +953,16 @@ void Grammar::analysis() {
     string nextToken = tokens[tokenIndex];
     while (parsingStack.top()!=terminates_$[0]&&nextToken!=terminates_$[0]){
         string top = parsingStack.top();
+        Production p = Production("$");
         if(isTerminate(top)&&nextToken==top){
             parsingStack.pop();
             tokenIndex++;
             nextToken = tokens[tokenIndex];
-        } else if(!isTerminate(top)&&isTerminate(nextToken)/*need to finish findProduction function*/){
+        } else if(!isTerminate(top)&&isTerminate(nextToken)&&findProduction(top,nextToken,p)){
             parsingStack.pop();
-//            for(int i = p.sets.size()-1;i>=0;i--){
-//                parsingStack.push(p.sets[i])
-//            }
+            for(int i = p.right.size()-1;i>=0;i--){
+                parsingStack.push(p.right[i]);
+            }
         }else{
             cout<<"error"<<endl;
         }
