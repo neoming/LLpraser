@@ -60,8 +60,8 @@ public:
         child.clear();
     }
     void showTreeNode(){
-        for(int i = 0;i<length;i++)cout<<" ";
-        cout<<val<<endl;
+        for(int i = 0;i<length;i++)cout<<"\t";
+        cout<<val;
     }
 };
 
@@ -112,6 +112,8 @@ public:
 
     set<string> getFollowSet(string s);
 
+    vector<string> findTerminatesByTable(string noterminate);
+
     void getTokens(string src);
 
     void analysis();
@@ -128,7 +130,8 @@ private:
     vector<string> terminates_$;//带有$的终止符集合
     vector<string> no_terminates;//非终止符
     vector<vector<int>> LLTable;//LL分析表
-    vector<string> tokens;
+    vector<string> tokens;//token
+    vector<int> row;//token row
     stack<TreeNode> parsingStack;
     vector<TreeNode> parsingOutput;
     string startSymbol;
@@ -144,6 +147,7 @@ Grammar::Grammar() {
     debug=true;
     tokens.clear();
     parsingOutput.clear();
+    row.clear();
 }
 
 void Grammar::init() {
@@ -945,6 +949,7 @@ void Grammar::getTokens(string src){
     vector<string> result;
     result.clear();
     string target;
+    int r = 0;
     while (begin<src.size()){
         passWhiteAndSpace(src,begin);
         length = 1;
@@ -956,10 +961,16 @@ void Grammar::getTokens(string src){
             }
         }
         target = src.substr(begin,length);
+        r = 0;
+        for(int i = begin;i>=0;i--){
+            if(src[i]=='\n')r++;
+        }
+
         if(debug){
             cout<<"getTokne:"<<target<<endl;
         }
         result.push_back(target);
+        row.push_back(r+1);
         begin = begin+length;
     }
     result.push_back("$");
@@ -970,6 +981,24 @@ void Grammar::showAnalysisInput(int begin){
     for(int i = begin;i<tokens.size();i++){
         cout<<tokens[i]<<" ";
     }
+}
+
+vector<string> Grammar::findTerminatesByTable(string noterminate){
+    int index = 0;
+    vector<string> result;
+    result.clear();
+    for(int i = 0;i<no_terminates.size();i++){
+        if(no_terminates[i]==noterminate){
+            index = i;
+            break;
+        }
+    }
+    for(int i = 0;i<terminates_$.size();i++){
+        if(LLTable[i][index]!=-1){
+            result.push_back(terminates_$[i]);
+        }
+    }
+    return result;
 }
 
 void Grammar::analysis() {
@@ -991,24 +1020,58 @@ void Grammar::analysis() {
             parsingOutput.push_back(top);
             parsingStack.pop();
         }
-        else if(isTerminate(top.val)&&(nextToken==top.val)){
+        else if(isTerminate(top.val)&&nextToken==top.val){
             parsingOutput.push_back(top);
             parsingStack.pop();
-            tokenIndex++;
-            nextToken = tokens[tokenIndex];
-            if(debug){ cout<<"match"<<endl; }
-
-        } else if(isNoterminate(top.val)&&isTerminate(nextToken)&&findProduction(nextToken,top.val,p)){
-            int length = top.length;
-            parsingOutput.push_back(top);
-            parsingStack.pop();
-            for(int i = p.right.size()-1;i>=0;i--){
-                    parsingStack.push(TreeNode(p.right[i],length+1));
+            if(nextToken==tokens[tokenIndex]){
+                tokenIndex++;
+                nextToken = tokens[tokenIndex];
+            } else{
+                nextToken = tokens[tokenIndex];
             }
-            if(debug){
-                cout<<"generate: ";
-                showProduction(p);
-                cout<<endl;
+            if(debug){ cout<<"match"<<endl; }
+        } else if(isNoterminate(top.val)){
+            if(isTerminate(nextToken)){
+                if(findProduction(nextToken,top.val,p)){
+                    int length = top.length;
+                    parsingOutput.push_back(top);
+                    parsingStack.pop();
+                    for(int i = p.right.size()-1;i>=0;i--){
+                        parsingStack.push(TreeNode(p.right[i],length+1));
+                    }
+                    if(debug){
+                        cout<<"generate: ";
+                        showProduction(p);
+                        cout<<endl;
+                    }
+                } else{
+                    vector<string> words = findTerminatesByTable(top.val);
+                    stack<TreeNode> temp;
+                    string target;
+                    bool done = false;
+                    while (parsingStack.size()>0){
+                        temp.push(parsingStack.top());
+                        parsingStack.pop();
+                    }
+                    while (temp.size()>0){
+                        if(!done){
+                            for(string s:words){
+                                if(s==temp.top().val){
+                                    target = s;
+                                    done = true;
+                                    //cout<<"find "<<s<<" = "<<target<<endl;
+                                    break;
+                                }
+                            }
+                        }
+                        parsingStack.push(temp.top());
+                        temp.pop();
+                    }
+                    int r = row[tokenIndex-1];
+                    cout<<"语法错误,第"<<r<<"行,缺少\""<<target<<"\""<<endl;
+                    //cout<<"row: "<<r<<" lost "<<target<<endl;
+                    nextToken = target;
+                }
             }
         }else{
             break;
@@ -1022,7 +1085,12 @@ void Grammar::analysis() {
     }
 
     if(accept){
-        for(TreeNode t:parsingOutput)t.showTreeNode();
+        for(int i = 0;i<parsingOutput.size();i++){
+            parsingOutput[i].showTreeNode();
+            if(i!=parsingOutput.size()-1){
+                cout<<endl;
+            }
+        }
     }
 }
 
@@ -1036,8 +1104,8 @@ void read_prog(string &prog) {
 /* 你可以添加其他函数 */
 
 void Analysis() {
-    string prog = "{\n    ID = NUM ;\n}";
-//    read_prog(prog);
+    string prog;
+    read_prog(prog);
     /* 骚年们 请开始你们的表演 */
     /********* Begin *********/
     Grammar g;
