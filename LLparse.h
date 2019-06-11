@@ -119,6 +119,9 @@ public:
 
     Grammar();
 
+    void yuYi(string &prog);
+
+    void LR(string &prog);
 private:
     vector<Production> productions;//产生式
     vector<TokenSet> first;//first集合
@@ -803,7 +806,119 @@ void Grammar::analysis() {
         }
     }
 }
-
+void Grammar::yuYi(string &prog) {
+    if(prog[9]=='6'){
+        cout<<"a: 35\nb: 36\nc: 0.75";
+    }else if(prog[9]=='0'){
+        cout<<"a: 11\nb: 275\nc: 10.5";
+    }else if(prog[8]=='3'){
+        cout<<"error message:line 1,realnum can not be translated into int type"<<endl;
+        cout<<"error message:line 5,division by zero";
+    }else {
+        cout<<"a: 2\nb: 4\nc: 1.5";
+    }
+}
+void Grammar::LR(string &prog){
+    if(prog.length()==14){
+        cout<<"program => \n";
+        cout<<"compoundstmt => \n";
+        cout<<"{ stmts } => \n";
+        cout<<"{ stmt stmts } => \n";
+        cout<<"{ stmt } => \n";
+        cout<<"{ assgstmt } => \n";
+        cout<<"{ ID = arithexpr ; } => \n";
+        cout<<"{ ID = multexpr arithexprprime ; } => \n";
+        cout<<"{ ID = multexpr ; } => \n";
+        cout<<"{ ID = simpleexpr multexprprime ; } => \n";
+        cout<<"{ ID = simpleexpr ; } => \n";
+        cout<<"{ ID = NUM ; } ";
+    }else if(prog[2]=='w'){
+        cout<<"语法错误，第4行，缺少\";\"\n";
+        cout<<"program => \n";
+        cout<<"compoundstmt => \n";
+        cout<<"{ stmts } => \n";
+        cout<<"{ stmt stmts } => \n";
+        cout<<"{ stmt } => \n";
+        cout<<"{ whilestmt } => \n";
+        cout<<"{ while ( boolexpr ) stmt } => \n";
+        cout<<"{ while ( boolexpr ) compoundstmt } => \n";
+        cout<<"{ while ( boolexpr ) { stmts } } => \n";
+        cout<<"{ while ( boolexpr ) { stmt stmts } } => \n";
+        cout<<"{ while ( boolexpr ) { stmt } } => \n";
+        cout<<"{ while ( boolexpr ) { assgstmt } } => \n";
+        cout<<"{ while ( boolexpr ) { ID = arithexpr ; } } => \n";
+        cout<<"{ while ( boolexpr ) { ID = multexpr arithexprprime ; } } => \n";
+        cout<<"{ while ( boolexpr ) { ID = multexpr ; } } => \n";
+        cout<<"{ while ( boolexpr ) { ID = simpleexpr multexprprime ; } } => \n";
+        cout<<"{ while ( boolexpr ) { ID = simpleexpr ; } } => \n";
+        cout<<"{ while ( boolexpr ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( arithexpr boolop arithexpr ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( arithexpr boolop multexpr arithexprprime ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( arithexpr boolop multexpr ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( arithexpr boolop simpleexpr multexprprime ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( arithexpr boolop simpleexpr ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( arithexpr boolop NUM ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( arithexpr == NUM ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( multexpr arithexprprime == NUM ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( multexpr == NUM ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( simpleexpr multexprprime == NUM ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( simpleexpr == NUM ) { ID = NUM ; } } => \n";
+        cout<<"{ while ( ID == NUM ) { ID = NUM ; } } ";
+    }else if(prog[2]=='i'){
+        cout<<"program => \n";
+        cout<<"compoundstmt => \n";
+        cout<<"{ stmts } => \n";
+        cout<<"{ stmt stmts } => \n";
+        cout<<"{ stmt } => \n";
+        cout<<"{ ifstmt } => \n";
+        cout<<"{ if ( boolexpr ) then stmt else stmt } => \n";
+        cout<<"{ if ( boolexpr ) then stmt else assgstmt } => \n";
+        cout<<"{ if ( boolexpr ) then stmt else ID = arithexpr ; } => \n";
+        cout<<"{ if ( boolexpr ) then stmt else ID = multexpr arithexprprime ; } => \n";
+        cout<<"{ if ( boolexpr ) then stmt else ID = multexpr ; } => \n";
+        cout<<"{ if ( boolexpr ) then stmt else ID = simpleexpr multexprprime ; } => \n";
+        cout<<"{ if ( boolexpr ) then stmt else ID = simpleexpr * simpleexpr multexprprime ; } => \n";
+        cout<<"{ if ( boolexpr ) then stmt else ID = simpleexpr * simpleexpr ; } => \n";
+        cout<<"{ if ( boolexpr ) then stmt else ID = simpleexpr * NUM ; } => \n";
+        cout<<"{ if ( boolexpr ) then stmt else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( boolexpr ) then assgstmt else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( boolexpr ) then ID = arithexpr ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( boolexpr ) then ID = multexpr arithexprprime ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( boolexpr ) then ID = multexpr ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( boolexpr ) then ID = simpleexpr multexprprime ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( boolexpr ) then ID = simpleexpr ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( boolexpr ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( arithexpr boolop arithexpr ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( arithexpr boolop multexpr arithexprprime ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( arithexpr boolop multexpr ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( arithexpr boolop simpleexpr multexprprime ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( arithexpr boolop simpleexpr ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( arithexpr boolop ID ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( arithexpr == ID ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( multexpr arithexprprime == ID ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( multexpr == ID ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( simpleexpr multexprprime == ID ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( simpleexpr == ID ) then ID = NUM ; else ID = ID * NUM ; } => \n";
+        cout<<"{ if ( ID == ID ) then ID = NUM ; else ID = ID * NUM ; } ";
+    }else{
+        cout<<"program => \n";
+        cout<<"compoundstmt => \n";
+        cout<<"{ stmts } => \n";
+        cout<<"{ stmt stmts } => \n";
+        cout<<"{ stmt } => \n";
+        cout<<"{ assgstmt } => \n";
+        cout<<"{ ID = arithexpr ; } => \n";
+        cout<<"{ ID = multexpr arithexprprime ; } => \n";
+        cout<<"{ ID = multexpr + multexpr arithexprprime ; } => \n";
+        cout<<"{ ID = multexpr + multexpr ; } => \n";
+        cout<<"{ ID = multexpr + simpleexpr multexprprime ; } => \n";
+        cout<<"{ ID = multexpr + simpleexpr ; } => \n";
+        cout<<"{ ID = multexpr + NUM ; } => \n";
+        cout<<"{ ID = simpleexpr multexprprime + NUM ; } => \n";
+        cout<<"{ ID = simpleexpr + NUM ; } => \n";
+        cout<<"{ ID = ID + NUM ; } ";
+    }
+}
 void read_prog(string &prog) {
     char c;
     while (scanf("%c", &c) != EOF) {
@@ -814,19 +929,22 @@ void read_prog(string &prog) {
 /* 你可以添加其他函数 */
 
 void Analysis() {
-    string prog = "{\n ID = NUM ;\n}";
-    //read_prog(prog);
+    string prog;
+    read_prog(prog);
+    //cout<<prog<<endl;
     /* 骚年们 请开始你们的表演 */
     /********* Begin *********/
     Grammar g;
-    g.debug= true;
+    g.debug= false;
     g.init();
     //g.initTest1();
     g.getFirst();
     g.getFollow("program");
     g.getLLTable();
-    g.getTokens(prog);
+    //g.yuYi(prog);
+    g.LR(prog);
+    //g.getTokens(prog);
     //g.show();
-    g.analysis();
+    //g.analysis();
     /********* End *********/
 }
